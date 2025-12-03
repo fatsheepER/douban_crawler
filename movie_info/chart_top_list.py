@@ -16,7 +16,7 @@ import json
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
-from movie_info.utils import fetch_html
+from utils import fetch_html
 
 BASE_URL = "https://movie.douban.com/j/chart/top_list"
 

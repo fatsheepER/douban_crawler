@@ -1,5 +1,5 @@
 """
-    movie_awards.py
+movie_awards.py
 
     解析某部电影的获奖情况页面，得到该电影每条获奖记录
     的相关信息，建立获奖记录与电影节、人物的关联，以及
@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from bs4 import BeautifulSoup
 
-from movie_info.utils import fetch_html
+from utils import fetch_html
 
 """正则和小工具"""
 

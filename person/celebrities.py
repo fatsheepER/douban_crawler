@@ -1,7 +1,14 @@
+"""
+person/celebrities.py
+
+    从 /subject/{movie_id}/celebrities 页面中抓取电影-人物关联表所需信息。
+    其中的人物 Douban ID 可以用于筛选种子人物列表。
+"""
+
 import re
 from typing import Any, Dict, List, Optional
 from bs4 import BeautifulSoup
-from movie_info.utils import fetch_html
+from utils import fetch_html
 
 _PERSON_ID_RE = re.compile(r"/personage/(\d+)/")
 _CAST_WORD_RE = re.compile(r"\bcast\b", re.I)

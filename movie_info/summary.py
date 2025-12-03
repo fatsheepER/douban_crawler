@@ -1,3 +1,10 @@
+"""
+movie_info.py
+
+    从 /subject 页面读取完整的剧情简介文本。
+    就只有处理这个字段的 1 个函数，未来移动到 details 中更清爽一些。
+"""
+
 from typing import Optional
 from bs4 import BeautifulSoup
 from utils import fetch_html

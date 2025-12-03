@@ -1,14 +1,16 @@
+"""
+movie_info/details.py
+    处理一些无法从 ld+json 中取得的字段。
+
+    包括：
+        - 制片国家/地区
+        - 语言
+"""
+
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any
 
-from movie_info.utils import fetch_html
-
-"""
-需要：
-- 可能多个值
-    - 制片国家/地区
-    - 语言
-"""
+from utils import fetch_html
 
 REGION_SELECTOR = "#info > span:nth-child(12)"
 LANGUAGE_SELECTOR = "#info > span:nth-child(14)"

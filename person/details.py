@@ -11,13 +11,15 @@ person/details.py
     - 出生地（原始文本+国家/地区部分）
     - IMDb 编号
     - 头像 URL
+
+    由于 /personage 有反爬机制，脚本不能正常获取 HTML 文档。
 """
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
 from bs4 import BeautifulSoup
 
-from movie_info.utils import fetch_html
+from utils import fetch_html
 
 
 """小工具"""

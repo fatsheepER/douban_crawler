@@ -1,6 +1,5 @@
 from __future__ import annotations
 import json
-from unicodedata import digit
 from bs4 import BeautifulSoup
 import re
 from typing import Any, Dict, List, Optional

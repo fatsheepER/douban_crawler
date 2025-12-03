@@ -1,9 +1,11 @@
-import json
+"""
+movie_info/main.py [DEPRECATED]
 
-import requests
+    早期试验写的小函数，正式爬虫中不使用。
+"""
+
 from bs4 import BeautifulSoup
-
-from movie_info.utils import fetch_html
+from utils import fetch_html
 
 movie_url = "https://movie.douban.com/subject/1299799/"
 

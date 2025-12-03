@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from bs4 import BeautifulSoup
 
-from movie_info.utils import fetch_html
+from utils import fetch_html
 
 
 """正则和小工具"""

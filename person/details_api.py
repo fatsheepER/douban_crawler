@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
-from movie_info.utils import fetch_html
+from utils import fetch_html
 
 BASE_API_URL = "https://m.douban.com/rexxar/api/v2/elessar/subject/{person_id}"
 
