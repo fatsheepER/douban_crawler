@@ -96,7 +96,8 @@ def main():
         print("No celebrities fetched")
         return
 
-    print(celebrities)
+    from pprint import pprint
+    pprint(celebrities)
 
 if __name__ == '__main__':
     main()
