@@ -1,5 +1,5 @@
 """
-movie_comments.py
+comments/movie_comments.py
 
     解析一部电影短评/想看页面，抽取出短评条目和观影记录条目。
 
