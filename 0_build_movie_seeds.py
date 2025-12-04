@@ -41,35 +41,29 @@ from movie_info.chart_top_list import fetch_top_movies_for_type
 # 我列出了网页上有排行榜的全部分类
 # 并根据 **个人喜好** 进行筛选
 TYPE_CONFIGS: List[Dict[str, Any]] = [
-    {"type_id": 11, "label": "剧情片"},
-    {"type_id": 24, "label": "喜剧片"},
-    {"type_id":  5, "label": "动作片"},
-    {"type_id": 13, "label": "爱情片"},
-    {"type_id": 17, "label": "科幻片"},
-    {"type_id": 25, "label": "动画片"},
-    {"type_id": 10, "label": "悬疑片"},
-    {"type_id": 19, "label": "惊悚片"},
-    {"type_id": 20, "label": "恐怖片"},
-    {"type_id":  1, "label": "纪录片"},
-    {"type_id": 23, "label":   "短片"},
-    {"type_id":  6, "label": "情色片"},
-    {"type_id": 14, "label": "音乐片"},    # 100:90 只有 94 条
-    # {"type_id":  7, "label": "歌舞片"},    # 100:90 只有 72 条
-    {"type_id": 28, "label": "家庭片"},
-    {"type_id": 10, "label": "悬疑片"},
-    # {"type_id":  8, "label": "儿童片"},    # 100:90 只有 37 条
-    {"type_id":  2, "label": "传记片"},
-    {"type_id":  4, "label": "历史片"},
-    {"type_id": 22, "label": "战争片"},
-    {"type_id":  3, "label": "犯罪片"},
-    {"type_id": 27, "label": "西部片"},    # 100:90 只有 33 条
-    {"type_id": 16, "label": "奇幻片"},
-    {"type_id": 15, "label": "冒险片"},
-    # {"type_id": 12, "label": "灾难片"},    # 100:90 只有 22 条
-    {"type_id": 29, "label": "武侠片"},    # 100:90 只有 49 条
-    {"type_id": 30, "label": "古装片"},    # 100:90 只有 94 条
-    # {"type_id": 18, "label": "运动片"},    # 100:90 只有 62 条
-    # {"type_id": 31, "label": "黑色电影"},  # 100:90 只有 17 条
+    {"type_id": 11, "label": "剧情片",   "multiplier": 3},  # 抓 300
+    {"type_id": 24, "label": "喜剧片",   "multiplier": 2},  # 抓 200
+    {"type_id": 5,  "label": "动作片",   "multiplier": 2},
+    {"type_id": 13, "label": "爱情片",   "multiplier": 2},
+    {"type_id": 17, "label": "科幻片",   "multiplier": 2},
+    {"type_id": 25, "label": "动画片",   "multiplier": 1},
+    {"type_id": 10, "label": "悬疑片",   "multiplier": 2},
+    {"type_id": 19, "label": "惊悚片",   "multiplier": 1},
+    {"type_id": 20, "label": "恐怖片",   "multiplier": 1},
+    {"type_id": 1,  "label": "纪录片",   "multiplier": 1},
+    {"type_id": 23, "label": "短片",     "multiplier": 1},
+    {"type_id": 6,  "label": "情色片",   "multiplier": 1},
+    {"type_id": 14, "label": "音乐片",   "multiplier": 1},
+    {"type_id": 28, "label": "家庭片",   "multiplier": 1},
+    {"type_id": 2,  "label": "传记片",   "multiplier": 2},
+    {"type_id": 4,  "label": "历史片",   "multiplier": 1},
+    {"type_id": 22, "label": "战争片",   "multiplier": 1},
+    {"type_id": 3,  "label": "犯罪片",   "multiplier": 2},
+    {"type_id": 27, "label": "西部片",   "multiplier": 1},
+    {"type_id": 16, "label": "奇幻片",   "multiplier": 1},
+    {"type_id": 15, "label": "冒险片",   "multiplier": 1},
+    {"type_id": 29, "label": "武侠片",   "multiplier": 1},
+    {"type_id": 30, "label": "古装片",   "multiplier": 1},
 ]
 
 # 每个类型抓多少条
@@ -105,12 +99,22 @@ def build_movie_seeds() -> Dict[str, Dict[str, Any]]:
         type_id = cfg["type_id"]
         label = cfg.get("label") or f"type_{type_id}"
 
-        print(f"===> 开始抓取 type_id={type_id} ({label}) 的前 {TOTAL_LIMIT_PER_TYPE} 部电影")
+        multiplier = cfg.get("multiplier", 1)
+        try:
+            multiplier = int(multiplier)
+        except (TypeError, ValueError):
+            multiplier = 1
+        if multiplier <= 0:
+            multiplier = 1
+
+        total_limit_for_type = TOTAL_LIMIT_PER_TYPE * multiplier
+
+        print(f"===> 开始抓取 type_id={type_id} ({label}) 的前 {total_limit_for_type} 部电影")
 
         # 利用你已经写好的工具函数
         movies = fetch_top_movies_for_type(
             type_id=type_id,
-            total_limit=TOTAL_LIMIT_PER_TYPE,
+            total_limit=total_limit_for_type,
             interval_id="100:90",  # 这个参数你之前默认也是这么用的
         )
 
