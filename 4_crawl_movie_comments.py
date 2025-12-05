@@ -29,6 +29,7 @@ import os
 import random
 import time
 from typing import Any, Dict, List, Optional
+import requests
 
 from bs4 import BeautifulSoup  # 主要是给类型提示用，不强依赖
 
@@ -89,16 +90,31 @@ def fetch_page_with_retry(url: str) -> Optional[str]:
             html = fetch_html(url)
             polite_sleep()
             return html
+
+        except requests.HTTPError as e:
+            status = e.response.status_code if e.response is not None else None
+            if status == 404:
+                print(f"[fetch] 404 Not Found，直接跳过：{url}")
+                # 不重试，不 sleep，直接放弃这个 URL
+                return None
+
+            print(
+                f"[fetch] HTTP error status={status} "
+                f"(attempt={attempt}/{MAX_RETRY}): {url}"
+            )
+
+        # 其他网络错误（超时、连接错误等）还是按原逻辑重试
         except Exception as e:
             print(f"[fetch] 请求失败 (attempt={attempt}/{MAX_RETRY}): {url}")
             print(f"        错误: {e!r}")
-            if attempt >= MAX_RETRY:
-                print("[fetch] 放弃该 URL")
-                break
 
-            backoff = random.uniform(RETRY_BACKOFF_MIN, RETRY_BACKOFF_MAX)
-            print(f"[fetch] {backoff:.2f}s 后重试...")
-            time.sleep(backoff)
+        if attempt >= MAX_RETRY:
+            print("[fetch] 达到最大重试次数，放弃该 URL")
+            break
+
+        backoff = random.uniform(RETRY_BACKOFF_MIN, RETRY_BACKOFF_MAX)
+        print(f"[fetch] {backoff:.2f}s 后重试...")
+        time.sleep(backoff)
 
     return None
 

@@ -41,6 +41,8 @@ import random
 import time
 from typing import Any, Dict, List, Optional
 
+import requests
+
 from crawler_config import (
     RAW_ROOT_DIR,
     SEED_DIR,
@@ -95,6 +97,7 @@ def fetch_person_with_retry(person_id: str) -> Optional[Dict[str, Any]]:
     带重试的人物抓取函数：
     - 调用 person.details_api.fetch_person_details
     - 捕获异常 / None，按退避策略重试
+    - 对 404 直接放弃，不再重试
     """
     for attempt in range(1, MAX_RETRY + 1):
         try:
@@ -103,18 +106,32 @@ def fetch_person_with_retry(person_id: str) -> Optional[Dict[str, Any]]:
             if data is None:
                 print(f"[person={person_id}] API 返回 None")
             return data
+
+        except requests.HTTPError as e:
+            status = e.response.status_code if e.response is not None else None
+            if status == 404:
+                # 对于明确的 404，直接跳过该人物，不再重试
+                print(f"[fetch_person] 404 Not Found，跳过人物 {person_id}")
+                return None
+
+            print(
+                f"[fetch_person] HTTP error status={status} "
+                f"(person={person_id}, attempt={attempt}/{MAX_RETRY}): {e!r}"
+            )
+
         except Exception as e:
             print(
                 f"[fetch_person] 请求失败 (person={person_id}, "
                 f"attempt={attempt}/{MAX_RETRY}): {e!r}"
             )
-            if attempt >= MAX_RETRY:
-                print(f"[fetch_person] 放弃该人物 {person_id}")
-                break
 
-            backoff = random.uniform(RETRY_BACKOFF_MIN, RETRY_BACKOFF_MAX)
-            print(f"[fetch_person] {backoff:.2f}s 后重试...")
-            time.sleep(backoff)
+        if attempt >= MAX_RETRY:
+            print(f"[fetch_person] 放弃该人物 {person_id}")
+            break
+
+        backoff = random.uniform(RETRY_BACKOFF_MIN, RETRY_BACKOFF_MAX)
+        print(f"[fetch_person] {backoff:.2f}s 后重试...")
+        time.sleep(backoff)
 
     return None
 
