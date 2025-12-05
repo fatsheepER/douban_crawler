@@ -12,5 +12,7 @@ def fetch_html(url: str) -> str:
 
     resp = requests.get(url, headers=headers, timeout=10)
     resp.raise_for_status() # raise exception when receive error code
-    resp.encoding = resp.apparent_encoding
+
+    # let's make it clear!
+    resp.encoding = "utf-8"
     return resp.text
