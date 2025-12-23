@@ -28,6 +28,8 @@
       1) persons_seed.jsonl 中的 name（中英混合）
       2) movie_cast / movie_crew 中的 name
       3) person_details_fixed.jsonl 中的 name_cn（退路）
+  - 本脚本会为 Movie 和 Person 分配自增整数 id 列，
+    后续脚本通过 (douban_id -> id) 映射来写各种桥表 / 事实表。
 """
 
 from __future__ import annotations
@@ -35,7 +37,7 @@ from __future__ import annotations
 import csv
 import json
 import os
-from typing import Dict, List, Optional, Iterable
+from typing import Dict, Iterable
 
 # ========= 路径配置 =========
 
@@ -97,7 +99,7 @@ def build_movies() -> None:
 
     这里不做类型/语言/地区桥表，那些已经在其他 ETL 里处理。
     """
-    # 汇总基础信息
+    # 汇总基础信息：movie_douban_id -> record
     basic_by_mid: Dict[str, dict] = {}
     for rec in iter_worker_jsonl("movies_basic.jsonl"):
         mid = str(rec.get("movie_douban_id") or "").strip()
@@ -123,12 +125,17 @@ def build_movies() -> None:
     print(f"[movies] 基本信息条数: {len(basic_by_mid)}")
     print(f"[movies] 有剧情简介的条数: {len(summary_by_mid)}")
 
+    # 为电影分配内部整数 id（1,2,3,...)。
+    # 为了稳定可复现，这里按照 Douban ID 数字升序来排。
+    all_mids_sorted = sorted(basic_by_mid.keys(), key=lambda x: int(x))
+
     ensure_dir_for_file(MOVIES_CSV)
     with open(MOVIES_CSV, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
-        # 没有内部自增 id，后续脚本直接用 movie_douban_id 当主键
+        # 注意增加了 id 列，后续脚本会用它作为内部主键
         writer.writerow([
-            "movie_douban_id",
+            "id",                # 内部自增 id（这里预先分配好）
+            "movie_douban_id",   # Douban ID（字符串）
             "title",
             "image_url",
             "release_date",
@@ -136,7 +143,8 @@ def build_movies() -> None:
             "summary",
         ])
 
-        for mid, b in basic_by_mid.items():
+        for idx, mid in enumerate(all_mids_sorted, start=1):
+            b = basic_by_mid[mid]
             title = b.get("title") or ""
             image_url = b.get("image_url") or ""
             release_date = b.get("release_date") or ""
@@ -144,7 +152,8 @@ def build_movies() -> None:
             summary = summary_by_mid.get(mid, "")
 
             writer.writerow([
-                mid,
+                idx,        # id
+                mid,        # movie_douban_id
                 title,
                 image_url,
                 release_date,
@@ -260,7 +269,7 @@ def load_person_names_from_credits() -> Dict[str, str]:
 def build_persons() -> None:
     """
     综合 persons_seed + person_details_fixed + cast/crew 中的人物，
-    构建 persons.csv。
+    构建 persons.csv，并为每个人物分配整数 id。
     """
     seed_names = load_seed_person_names()
     details_by_pid = load_person_details_fixed()
@@ -272,12 +281,16 @@ def build_persons() -> None:
     all_pids = set(details_by_pid.keys()) | set(credit_names.keys())
     print(f"[persons] 汇总人物 ID 总数: {len(all_pids)}")
 
+    # 为了保证 id 稳定，按 Douban ID 数字升序
+    all_pids_sorted = sorted(all_pids, key=lambda x: int(x))
+
     ensure_dir_for_file(PERSONS_CSV)
     with open(PERSONS_CSV, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
-        # 注意：这里不写内部 id，保持和你之前看到的一致
+        # 注意：增加了 id 列，其余列保持原有设计，方便后续使用
         writer.writerow([
-            "person_douban_id",
+            "id",                # 内部自增 id
+            "person_douban_id",  # Douban ID
             "name",
             "avatar_url",
             "sex",
@@ -291,7 +304,7 @@ def build_persons() -> None:
         wrote = 0
         skipped_no_name = 0
 
-        for pid in sorted(all_pids, key=lambda x: int(x)):
+        for idx, pid in enumerate(all_pids_sorted, start=1):
             info = details_by_pid.get(pid, {})
 
             # name 优先级：
@@ -318,7 +331,8 @@ def build_persons() -> None:
             imdb_id = str(info.get("imdb_id") or "").strip()
 
             writer.writerow([
-                pid,
+                idx,          # id
+                pid,          # person_douban_id
                 name,
                 avatar_url,
                 sex,
@@ -339,7 +353,7 @@ def build_persons() -> None:
 # ========= main =========
 
 def main():
-    print("===> 构建 movies.csv / persons.csv")
+    print("===> 构建 movies.csv / persons.csv（含内部整数 id 与 Douban ID 映射）")
     build_movies()
     build_persons()
     print("===> 03_build_movies_and_persons.py 完成")
